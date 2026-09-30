@@ -1,0 +1,10 @@
+{
+  "name": "Bestli",
+  "short_name": "Bestli",
+  "description": "Professional booking tools for independent professionals and small businesses.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#171717",
+  "icons": [{ "src": "/assets/bookli-logo.webp", "sizes": "any", "type": "image/webp", "purpose": "any maskable" }]
+}
