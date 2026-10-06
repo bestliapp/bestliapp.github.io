@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Poster · Bestli</title>
+<link rel="icon" href="/assets/bestli-logo.webp" type="image/webp">
+<style>
+:root{--ink:#2a1a0a;--muted:#6b5a48;--accent:#c96a0d;--soft:#fff3dc}
+*{box-sizing:border-box}
+body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 16px;background:rgba(255,255,255,.92);border-bottom:1px solid #e3dccf}
+.bar button{font:inherit;font-size:14px;font-weight:700;border:1px solid #e3dccf;background:#fff;color:var(--ink);border-radius:12px;padding:10px 16px;cursor:pointer}
+.bar button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar .print{background:var(--ink);border-color:var(--ink);color:#fff}
+.sheet{width:210mm;height:297mm;margin:24px auto;background:#fff;box-shadow:0 20px 60px rgba(40,25,5,.15);overflow:hidden;position:relative}
+.poster{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:22mm 18mm 16mm;background:linear-gradient(160deg,#fffaf0 0%,#ffe9b8 55%,#f8b25a 100%)}
+.poster .logo{width:34mm;height:34mm;border-radius:8mm;object-fit:cover;box-shadow:0 4mm 10mm rgba(80,40,0,.18)}
+.poster h1{font-size:15mm;line-height:1.05;letter-spacing:-.04em;margin:8mm 0 3mm}
+.poster .lead{font-size:9mm;font-weight:800;color:var(--accent);margin:0}
+.qrbox{background:#fff;border-radius:8mm;padding:8mm;box-shadow:0 6mm 16mm rgba(80,40,0,.18)}
+.poster .qr svg{width:92mm;height:92mm;display:block}
+.poster .scan{font-size:6mm;line-height:1.35;color:var(--ink);max-width:150mm;margin:0}
+.poster .app{font-size:4.6mm;color:var(--muted);margin:2mm 0 0}
+.foot{display:flex;align-items:center;gap:3mm;font-weight:800;font-size:5mm;color:var(--ink)}
+.foot img{width:8mm;height:8mm;border-radius:2mm}
+.cards{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%}
+.card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3mm;text-align:center;padding:8mm;border:.2mm dashed #d6cbb8;background:linear-gradient(160deg,#fffaf0,#ffe6ad)}
+.card .name{font-size:6.5mm;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.card .qr svg{width:52mm;height:52mm;display:block}
+.card .qrbox{padding:4mm;border-radius:5mm}
+.card .short{font-size:5mm;font-weight:800;color:var(--accent)}
+.card .foot{font-size:3.6mm}.card .foot img{width:5.5mm;height:5.5mm}
+.msg{max-width:520px;margin:80px auto;text-align:center;font-size:16px;color:var(--muted)}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .bar{display:none}
+  .sheet{margin:0;box-shadow:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media screen and (max-width:820px){.sheet{transform:scale(.45);transform-origin:top center;margin-bottom:calc(-297mm * .55)}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar" hidden>
+  <button id="bPoster" class="on"></button>
+  <button id="bCards"></button>
+  <button id="bPrint" class="print"></button>
+</div>
+<div id="root"><div class="msg">…</div></div>
+<script src="/assets/qrcode.min.js"></script>
+<script>
+(function () {
+  var SUPABASE_URL = "https://mtkoxewhavzlyqlmbndb.supabase.co";
+  var ANON_KEY = "sb_publishable_DRqOO0VxUSKQD71dFDTd5Q_RFf8Evlj"; // public, same key the apps ship with
+
+  // lead, scan, app, short (cards), poster, cards, print, not found
+  var T = {
+    en: ["Book with us online", "Scan with your phone camera to see our services and book a time.", "Or search for us in the Bestli app.", "Scan to book", "Poster", "Cards", "Print", "This business wasn't found."],
+    hu: ["Foglalj nálunk online", "Szkenneld be a telefonod kamerájával, nézd meg a szolgáltatásainkat, és foglalj időpontot.", "Vagy keress meg minket a Bestli appban.", "Szkenneld be és foglalj", "Plakát", "Kártyák", "Nyomtatás", "Ez a vállalkozás nem található."],
+    de: ["Online bei uns buchen", "Scanne den Code mit deiner Handykamera, sieh dir unsere Leistungen an und buche einen Termin.", "Oder finde uns in der Bestli-App.", "Scannen und buchen", "Plakat", "Karten", "Drucken", "Dieses Unternehmen wurde nicht gefunden."],
+    fr: ["Réservez en ligne", "Scannez avec l’appareil photo de votre téléphone pour voir nos prestations et réserver un créneau.", "Ou cherchez-nous dans l’app Bestli.", "Scannez pour réserver", "Affiche", "Cartes", "Imprimer", "Cette entreprise est introuvable."],
+    es: ["Reserva con nosotros online", "Escanea con la cámara del móvil para ver nuestros servicios y reservar una hora.", "O búscanos en la app Bestli.", "Escanea para reservar", "Cartel", "Tarjetas", "Imprimir", "No se ha encontrado este negocio."],
+    it: ["Prenota online da noi", "Inquadra con la fotocamera del telefono per vedere i nostri servizi e prenotare un orario.", "Oppure cercaci nell’app Bestli.", "Inquadra e prenota", "Poster", "Biglietti", "Stampa", "Questa attività non è stata trovata."],
+    pt: ["Reserve connosco online", "Leia com a câmara do telemóvel para ver os nossos serviços e reservar um horário.", "Ou procure-nos na app Bestli.", "Leia para reservar", "Cartaz", "Cartões", "Imprimir", "Este negócio não foi encontrado."],
+    nl: ["Boek online bij ons", "Scan met je telefooncamera om onze diensten te bekijken en een tijd te boeken.", "Of zoek ons in de Bestli-app.", "Scan om te boeken", "Poster", "Kaartjes", "Afdrukken", "Dit bedrijf is niet gevonden."],
+    da: ["Book hos os online", "Scan med telefonens kamera for at se vores ydelser og booke en tid.", "Eller find os i Bestli-appen.", "Scan og book", "Plakat", "Kort", "Udskriv", "Virksomheden blev ikke fundet."],
+    sv: ["Boka hos oss online", "Skanna med mobilkameran för att se våra tjänster och boka en tid.", "Eller sök efter oss i Bestli-appen.", "Skanna och boka", "Affisch", "Kort", "Skriv ut", "Företaget hittades inte."],
+    no: ["Bestill hos oss på nett", "Skann med mobilkameraet for å se tjenestene våre og bestille en time.", "Eller finn oss i Bestli-appen.", "Skann og bestill", "Plakat", "Kort", "Skriv ut", "Fant ikke bedriften."],
+    fi: ["Varaa meiltä verkossa", "Skannaa puhelimen kameralla, katso palvelumme ja varaa aika.", "Tai etsi meidät Bestli-sovelluksesta.", "Skannaa ja varaa", "Juliste", "Kortit", "Tulosta", "Yritystä ei löytynyt."],
+    et: ["Broneeri meie juures veebis", "Skanni telefoni kaameraga, vaata meie teenuseid ja broneeri aeg.", "Või leia meid Bestli rakendusest.", "Skanni ja broneeri", "Plakat", "Kaardid", "Prindi", "Ettevõtet ei leitud."],
+    lv: ["Rezervē pie mums tiešsaistē", "Noskenē ar tālruņa kameru, apskati mūsu pakalpojumus un rezervē laiku.", "Vai atrodi mūs Bestli lietotnē.", "Noskenē un rezervē", "Plakāts", "Kartītes", "Drukāt", "Uzņēmums netika atrasts."],
+    lt: ["Rezervuokite pas mus internetu", "Nuskenuokite telefono kamera, peržiūrėkite paslaugas ir rezervuokite laiką.", "Arba raskite mus „Bestli“ programėlėje.", "Nuskenuokite ir rezervuokite", "Plakatas", "Kortelės", "Spausdinti", "Verslas nerastas."],
+    pl: ["Zarezerwuj u nas online", "Zeskanuj aparatem w telefonie, zobacz nasze usługi i zarezerwuj termin.", "Albo znajdź nas w aplikacji Bestli.", "Zeskanuj i zarezerwuj", "Plakat", "Karty", "Drukuj", "Nie znaleziono tej firmy."],
+    cs: ["Rezervujte si u nás online", "Naskenujte fotoaparátem telefonu, prohlédněte si naše služby a rezervujte si termín.", "Nebo nás najděte v aplikaci Bestli.", "Naskenujte a rezervujte", "Plakát", "Kartičky", "Tisk", "Tento podnik nebyl nalezen."],
+    sk: ["Rezervujte si u nás online", "Naskenujte fotoaparátom telefónu, pozrite si naše služby a rezervujte si termín.", "Alebo nás nájdite v aplikácii Bestli.", "Naskenujte a rezervujte", "Plagát", "Kartičky", "Tlačiť", "Tento podnik sa nenašiel."],
+    sl: ["Rezervirajte pri nas na spletu", "Skenirajte s kamero telefona, oglejte si naše storitve in rezervirajte termin.", "Ali nas poiščite v aplikaciji Bestli.", "Skenirajte in rezervirajte", "Plakat", "Kartice", "Natisni", "Podjetja ni bilo mogoče najti."],
+    hr: ["Rezervirajte kod nas online", "Skenirajte kamerom mobitela, pogledajte naše usluge i rezervirajte termin.", "Ili nas potražite u aplikaciji Bestli.", "Skeniraj i rezerviraj", "Plakat", "Kartice", "Ispis", "Posao nije pronađen."],
+    sr: ["Rezervišite kod nas onlajn", "Skenirajte kamerom telefona, pogledajte naše usluge i rezervišite termin.", "Ili nas potražite u aplikaciji Bestli.", "Skeniraj i rezerviši", "Plakat", "Kartice", "Štampaj", "Preduzeće nije pronađeno."],
+    ro: ["Rezervă la noi online", "Scanează cu camera telefonului, vezi serviciile noastre și rezervă o oră.", "Sau caută-ne în aplicația Bestli.", "Scanează și rezervă", "Afiș", "Cartonașe", "Tipărește", "Afacerea nu a fost găsită."],
+    bg: ["Резервирайте при нас онлайн", "Сканирайте с камерата на телефона, вижте услугите ни и запазете час.", "Или ни потърсете в приложението Bestli.", "Сканирай и резервирай", "Плакат", "Картички", "Печат", "Бизнесът не е намерен."],
+    el: ["Κλείστε online σε εμάς", "Σαρώστε με την κάμερα του κινητού για να δείτε τις υπηρεσίες μας και να κλείσετε ώρα.", "Ή βρείτε μας στην εφαρμογή Bestli.", "Σαρώστε και κλείστε", "Αφίσα", "Κάρτες", "Εκτύπωση", "Η επιχείρηση δεν βρέθηκε."],
+    ru: ["Записывайтесь к нам онлайн", "Отсканируйте камерой телефона, посмотрите наши услуги и выберите время.", "Или найдите нас в приложении Bestli.", "Сканируйте и записывайтесь", "Плакат", "Карточки", "Печать", "Бизнес не найден."],
+    uk: ["Записуйтеся до нас онлайн", "Відскануйте камерою телефона, перегляньте наші послуги та оберіть час.", "Або знайдіть нас у застосунку Bestli.", "Скануйте й записуйтеся", "Плакат", "Картки", "Друк", "Бізнес не знайдено."],
+    tr: ["Bizden online randevu alın", "Telefon kameranızla tarayın, hizmetlerimize bakın ve bir saat seçin.", "Ya da bizi Bestli uygulamasında bulun.", "Tara ve randevu al", "Afiş", "Kartlar", "Yazdır", "İşletme bulunamadı."],
+    hi: ["हमारे साथ ऑनलाइन बुक करें", "फ़ोन के कैमरे से स्कैन करें, हमारी सेवाएँ देखें और समय बुक करें।", "या Bestli ऐप में हमें खोजें।", "स्कैन करें और बुक करें", "पोस्टर", "कार्ड", "प्रिंट", "यह व्यवसाय नहीं मिला।"],
+    th: ["จองกับเราออนไลน์", "สแกนด้วยกล้องโทรศัพท์เพื่อดูบริการของเราและจองเวลา", "หรือค้นหาเราในแอป Bestli", "สแกนเพื่อจอง", "โปสเตอร์", "การ์ด", "พิมพ์", "ไม่พบธุรกิจนี้"],
+    ja: ["オンラインで予約", "スマートフォンのカメラで読み取ると、メニューの確認と予約ができます。", "Bestliアプリで検索することもできます。", "読み取って予約", "ポスター", "カード", "印刷", "このお店は見つかりませんでした。"],
+    ko: ["온라인으로 예약하세요", "휴대폰 카메라로 스캔하면 서비스를 보고 시간을 예약할 수 있습니다.", "또는 Bestli 앱에서 찾아보세요.", "스캔하고 예약", "포스터", "카드", "인쇄", "업체를 찾을 수 없습니다."],
+    "zh-Hans": ["在线预约", "用手机相机扫码，查看我们的服务并预约时间。", "也可以在 Bestli 应用中搜索我们。", "扫码预约", "海报", "卡片", "打印", "未找到该商家。"]
+  };
+
+  var params = new URLSearchParams(location.search);
+  var slug = params.get("b") || "";
+  var langs = [params.get("lang") || "", navigator.language || ""];
+  var lang = "en";
+  for (var i = 0; i < langs.length; i++) {
+    var l = langs[i];
+    if (T[l]) { lang = l; break; }
+    if (/^zh/i.test(l)) { lang = "zh-Hans"; break; }
+    if (/^nb|^nn/i.test(l)) { lang = "no"; break; }
+    var short = l.split("-")[0].toLowerCase();
+    if (T[short]) { lang = short; break; }
+  }
+  var t = T[lang];
+  document.documentElement.lang = lang;
+  var root = document.getElementById("root");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function qrSvg(text) {
+    var q = qrcode(0, "M"); q.addData(text); q.make();
+    return q.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+  }
+  function missing() { root.innerHTML = '<div class="msg">' + esc(t[7]) + '</div>'; }
+
+  if (!slug) { missing(); return; }
+
+  fetch(SUPABASE_URL + "/rest/v1/rpc/get_business_by_slug", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY },
+    body: JSON.stringify({ p_slug: slug })
+  })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (rows) {
+      var biz = rows && rows[0];
+      if (!biz) { missing(); return; }
+      document.title = biz.name + " · Bestli";
+      var link = location.origin + "/biz/" + encodeURIComponent(slug);
+      var svg = qrSvg(link);
+      var logo = biz.logo_url ? esc(biz.logo_url) : "/assets/bestli-logo.webp";
+      var foot = '<div class="foot"><img src="/assets/bestli-logo.webp" alt="">Bestli</div>';
+
+      var poster =
+        '<div class="sheet"><div class="poster">' +
+        '<div><img class="logo" src="' + logo + '" alt=""><h1>' + esc(biz.name) + '</h1><p class="lead">' + esc(t[0]) + '</p></div>' +
+        '<div class="qrbox"><div class="qr">' + svg + '</div></div>' +
+        '<div><p class="scan">' + esc(t[1]) + '</p><p class="app">' + esc(t[2]) + '</p></div>' +
+        foot + '</div></div>';
+      var one =
+        '<div class="card"><div class="name">' + esc(biz.name) + '</div>' +
+        '<div class="qrbox"><div class="qr">' + svg + '</div></div>' +
+        '<div class="short">' + esc(t[3]) + '</div>' + foot + '</div>';
+      var cards = '<div class="sheet"><div class="cards">' + one + one + one + one + '</div></div>';
+
+      var bar = document.getElementById("bar");
+      var bP = document.getElementById("bPoster"), bC = document.getElementById("bCards");
+      bP.textContent = t[4]; bC.textContent = t[5]; document.getElementById("bPrint").textContent = t[6];
+      function show(which) {
+        root.innerHTML = which === "cards" ? cards : poster;
+        bP.className = which === "cards" ? "" : "on";
+        bC.className = which === "cards" ? "on" : "";
+      }
+      bP.onclick = function () { show("poster"); };
+      bC.onclick = function () { show("cards"); };
+      document.getElementById("bPrint").onclick = function () { window.print(); };
+      bar.hidden = false;
+      show(params.get("size") === "cards" ? "cards" : "poster");
+    })
+    .catch(missing);
+})();
+</script>
+</body>
+</html>
