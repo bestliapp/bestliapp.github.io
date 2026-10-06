@@ -10,7 +10,11 @@
 :root{--ink:#2a1a0a;--muted:#6b5a48;--accent:#c96a0d;--soft:#fff3dc}
 *{box-sizing:border-box}
 body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-.bar{position:sticky;top:0;z-index:2;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 16px;background:rgba(255,255,255,.92);border-bottom:1px solid #e3dccf}
+.bar{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:12px 16px;background:rgba(255,255,255,.92);border-bottom:1px solid #e3dccf}
+.bar .mid{display:flex;gap:8px}
+.bar #lang{justify-self:start}
+.bar .print{justify-self:end}
+@media (max-width:560px){.bar{grid-template-columns:1fr 1fr}.bar .mid{grid-column:1/-1;justify-content:center;order:-1}}
 .bar button{font:inherit;font-size:14px;font-weight:700;border:1px solid #e3dccf;background:#fff;color:var(--ink);border-radius:12px;padding:10px 16px;cursor:pointer}
 .bar button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .bar .print{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -35,11 +39,17 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
 .card .foot{font-size:3.6mm}.card .foot img{width:5.5mm;height:5.5mm}
 .msg{max-width:520px;margin:80px auto;text-align:center;font-size:16px;color:var(--muted)}
 @media print{
-  @page{size:A4;margin:0}
+  @page{size:A4 portrait;margin:10mm}
   body{background:#fff}
   .bar{display:none}
   html,body{height:auto}
-  .sheet{margin:0 auto;box-shadow:none;width:100%;height:265mm;page-break-after:avoid;break-after:avoid;break-inside:avoid}
+  .sheet{margin:0;box-shadow:none;width:100%;height:auto;border-radius:4mm;page-break-after:avoid;break-after:avoid;break-inside:avoid}
+  .poster{height:235mm;padding:14mm 12mm 10mm}
+  .poster .logo{width:28mm;height:28mm}
+  .poster h1{font-size:13mm;margin:6mm 0 2mm}
+  .poster .qr svg{width:80mm;height:80mm}
+  .cards{height:232mm}
+  .card .qr svg{width:48mm;height:48mm}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 @media screen and (max-width:820px){.sheet{transform:scale(.45);transform-origin:top center;margin-bottom:calc(-297mm * .55)}}
@@ -47,9 +57,8 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
 </head>
 <body>
 <div class="bar" id="bar" hidden>
-  <button id="bPoster" class="on"></button>
-  <button id="bCards"></button>
   <select id="lang" aria-label="Language"></select>
+  <div class="mid"><button id="bPoster" class="on"></button><button id="bCards"></button></div>
   <button id="bPrint" class="print"></button>
 </div>
 <div id="root"><div class="msg">…</div></div>
@@ -69,7 +78,7 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
     it: ["Prenota online da noi", "Inquadra con la fotocamera del telefono per vedere i nostri servizi e prenotare un orario.", "Oppure cercaci nell’app Bestli.", "Inquadra e prenota", "Poster", "Biglietti", "Stampa", "Questa attività non è stata trovata."],
     pt: ["Reserve connosco online", "Leia com a câmara do telemóvel para ver os nossos serviços e reservar um horário.", "Ou procure-nos na app Bestli.", "Leia para reservar", "Cartaz", "Cartões", "Imprimir", "Este negócio não foi encontrado."],
     nl: ["Boek online bij ons", "Scan met je telefooncamera om onze diensten te bekijken en een tijd te boeken.", "Of zoek ons in de Bestli-app.", "Scan om te boeken", "Poster", "Kaartjes", "Afdrukken", "Dit bedrijf is niet gevonden."],
-    da: ["Book hos os online", "Scan med telefonens kamera for at se vores ydelser og booke en tid.", "Eller find os i Bestli-appen.", "Scan og book", "Plakat", "Kort", "Udskriv", "Virksomheden blev ikke fundet."],
+    da: ["Bestil tid hos os online", "Scan med telefonens kamera for at se vores ydelser og bestille en tid.", "Eller find os i Bestli-appen.", "Scan og bestil tid", "Plakat", "Kort", "Udskriv", "Virksomheden blev ikke fundet."],
     sv: ["Boka hos oss online", "Skanna med mobilkameran för att se våra tjänster och boka en tid.", "Eller sök efter oss i Bestli-appen.", "Skanna och boka", "Affisch", "Kort", "Skriv ut", "Företaget hittades inte."],
     no: ["Bestill hos oss på nett", "Skann med mobilkameraet for å se tjenestene våre og bestille en time.", "Eller finn oss i Bestli-appen.", "Skann og bestill", "Plakat", "Kort", "Skriv ut", "Fant ikke bedriften."],
     fi: ["Varaa meiltä verkossa", "Skannaa puhelimen kameralla, katso palvelumme ja varaa aika.", "Tai etsi meidät Bestli-sovelluksesta.", "Skannaa ja varaa", "Juliste", "Kortit", "Tulosta", "Yritystä ei löytynyt."],
