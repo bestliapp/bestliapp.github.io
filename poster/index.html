@@ -14,6 +14,7 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
 .bar button{font:inherit;font-size:14px;font-weight:700;border:1px solid #e3dccf;background:#fff;color:var(--ink);border-radius:12px;padding:10px 16px;cursor:pointer}
 .bar button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .bar .print{background:var(--ink);border-color:var(--ink);color:#fff}
+.bar select{font:inherit;font-size:14px;border:1px solid #e3dccf;background:#fff;color:var(--ink);border-radius:12px;padding:9px 10px}
 .sheet{width:210mm;height:297mm;margin:24px auto;background:#fff;box-shadow:0 20px 60px rgba(40,25,5,.15);overflow:hidden;position:relative}
 .poster{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:22mm 18mm 16mm;background:linear-gradient(160deg,#fffaf0 0%,#ffe9b8 55%,#f8b25a 100%)}
 .poster .logo{width:34mm;height:34mm;border-radius:8mm;object-fit:cover;box-shadow:0 4mm 10mm rgba(80,40,0,.18)}
@@ -37,7 +38,8 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
   @page{size:A4;margin:0}
   body{background:#fff}
   .bar{display:none}
-  .sheet{margin:0;box-shadow:none}
+  html,body{height:auto}
+  .sheet{margin:0 auto;box-shadow:none;width:100%;height:265mm;page-break-after:avoid;break-after:avoid;break-inside:avoid}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 @media screen and (max-width:820px){.sheet{transform:scale(.45);transform-origin:top center;margin-bottom:calc(-297mm * .55)}}
@@ -47,6 +49,7 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
 <div class="bar" id="bar" hidden>
   <button id="bPoster" class="on"></button>
   <button id="bCards"></button>
+  <select id="lang" aria-label="Language"></select>
   <button id="bPrint" class="print"></button>
 </div>
 <div id="root"><div class="msg">…</div></div>
@@ -92,6 +95,7 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
     "zh-Hans": ["在线预约", "用手机相机扫码，查看我们的服务并预约时间。", "也可以在 Bestli 应用中搜索我们。", "扫码预约", "海报", "卡片", "打印", "未找到该商家。"]
   };
 
+  var NAMES = { en: "English", hu: "Magyar", de: "Deutsch", fr: "Français", es: "Español", it: "Italiano", pt: "Português", nl: "Nederlands", da: "Dansk", sv: "Svenska", no: "Norsk", fi: "Suomi", et: "Eesti", lv: "Latviešu", lt: "Lietuvių", pl: "Polski", cs: "Čeština", sk: "Slovenčina", sl: "Slovenščina", hr: "Hrvatski", sr: "Srpski", ro: "Română", bg: "Български", el: "Ελληνικά", ru: "Русский", uk: "Українська", tr: "Türkçe", hi: "हिन्दी", th: "ไทย", ja: "日本語", ko: "한국어", "zh-Hans": "简体中文" };
   var params = new URLSearchParams(location.search);
   var slug = params.get("b") || "";
   var langs = [params.get("lang") || "", navigator.language || ""];
@@ -159,6 +163,16 @@ body{margin:0;background:#efe9de;color:var(--ink);font-family:-apple-system,Blin
       bP.onclick = function () { show("poster"); };
       bC.onclick = function () { show("cards"); };
       document.getElementById("bPrint").onclick = function () { window.print(); };
+      var sel = document.getElementById("lang");
+      Object.keys(NAMES).forEach(function (k) {
+        var o = document.createElement("option"); o.value = k; o.textContent = NAMES[k];
+        if (k === lang) o.selected = true; sel.appendChild(o);
+      });
+      sel.onchange = function () {
+        params.set("lang", sel.value);
+        params.set("size", bC.className === "on" ? "cards" : "poster");
+        location.search = params.toString();
+      };
       bar.hidden = false;
       show(params.get("size") === "cards" ? "cards" : "poster");
     })
