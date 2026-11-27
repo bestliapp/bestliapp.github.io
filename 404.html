@@ -64,9 +64,11 @@ img.banner{display:block}
   var PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bathorizsolt.bookli";
 
   var ICONS = {
-    beauty: "💅", sports: "🏋️", health: "🏥", edu: "📚", home: "🏠", animals: "🐾",
-    creative: "🎨", wellness: "🧘", tech: "💻", auto: "🚗", food: "🍕", cleaning: "🧹",
-    events: "🎉", finance: "💼", legal: "⚖️"
+    beauty: "💄", hair: "💇", nails: "💅", massage: "💆", tattoo: "🖋️", wellness: "🧘", health: "🏥",
+    dental: "🦷", physio: "🦴", therapy: "🧠", nutrition: "🥗", sports: "🏋️", edu: "📚", tutoring: "✏️",
+    languages: "🗣️", music: "🎵", coaching: "🎯", creative: "🎨", photo: "📸", events: "🎉", wedding: "💍",
+    home: "🏠", repair: "🔧", cleaning: "🧹", childcare: "🧸", animals: "🐾", auto: "🚗", tech: "💻",
+    marketing: "📣", finance: "💼", legal: "⚖️", food: "🍕"
   };
 
   function escapeHtml(s) {
@@ -132,7 +134,8 @@ img.banner{display:block}
       var biz = rows && rows[0];
       if (!biz) { notFound(card); return; }
 
-      var icon = ICONS[biz.cat] || "🏢";
+      var catKey = Array.isArray(biz.cat) ? biz.cat[0] : String(biz.cat || "").split(",")[0].trim();
+      var icon = ICONS[catKey] || "🏢";
       var bannerHtml = biz.banner_url
         ? '<img class="banner" src="' + escapeHtml(biz.banner_url) + '" alt="">'
         : '<div class="banner">' + icon + '</div>';
