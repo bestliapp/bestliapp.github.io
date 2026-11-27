@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "7Y7HDW4VY3.com.bathorizsolt.Bookli",
-        "paths": ["/reset-password"]
+        "paths": ["/reset-password", "/biz/*"]
       }
     ]
   }
